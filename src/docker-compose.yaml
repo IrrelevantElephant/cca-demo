@@ -1,0 +1,45 @@
+name: cca-demo
+
+services:
+  app:
+    image: cca-demo:latest
+    build:
+      context: .
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    environment:
+      - ConnectionString=postgresql://postgres:password@database:5432/cca-demo?sslmode=disable
+      - DEMO_INCIDENT_ENABLED=${DEMO_INCIDENT_ENABLED:-true}
+    ports:
+      - "8080:8080"
+    develop:
+      watch:
+        - path: ./
+          action: rebuild
+
+  database:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=cca-demo
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "cca-demo", "-U", "postgres" ]
+      interval: 1s
+      timeout: 60s
+      retries: 60
+      start_period: 80s
+
+  migrator:
+    image: cca-demo-migrations:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.migrations
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      - ConnectionString=postgresql://postgres:password@database:5432/cca-demo?sslmode=disable

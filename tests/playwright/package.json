@@ -1,0 +1,13 @@
+{
+  "name": "recoverboard-playwright",
+  "private": true,
+  "scripts": {
+    "test:integration": "playwright test --project=integration",
+    "test:smoke": "playwright test --project=smoke"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.51.1",
+    "@types/node": "22.13.10",
+    "typescript": "5.8.3"
+  }
+}

@@ -1,0 +1,38 @@
+name: Playwright integration
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run isolated Compose integration suite
+        run: |
+          status=0
+          docker compose -p recoverboard-test -f src/docker-compose.yaml -f compose.test.yaml --profile integration up --build -d app || status=$?
+          if [ "$status" -eq 0 ]; then
+            docker compose -p recoverboard-test -f src/docker-compose.yaml -f compose.test.yaml --profile integration run --build --no-deps --rm playwright npm run test:integration || status=$?
+          fi
+          if [ "$status" -eq 0 ]; then
+            bash scripts/test-task-persistence.sh recoverboard-test || status=$?
+          fi
+          docker compose -p recoverboard-test -f src/docker-compose.yaml -f compose.test.yaml --profile integration logs > integration-compose.log || true
+          exit "$status"
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-integration
+          path: |
+            artifacts/playwright/
+            integration-compose.log
+          if-no-files-found: warn
+      - name: Clean up test environment
+        if: always()
+        run: docker compose -p recoverboard-test -f src/docker-compose.yaml -f compose.test.yaml --profile integration down -v --remove-orphans

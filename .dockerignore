@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+!.env.example
+*.tfstate*
+result
+result-*
+node_modules
+**/node_modules
+artifacts
+*.log

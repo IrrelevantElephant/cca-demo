@@ -1,0 +1,64 @@
+services:
+  database:
+    ports: !reset []
+    volumes:
+      - test-database-data:/var/lib/postgresql/data
+
+  app:
+    ports: !reset []
+    depends_on:
+      fixture-app:
+        condition: service_started
+
+  fixture-database:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: fixture-password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: recoverboard-fixture
+    volumes:
+      - fixture-database-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD, pg_isready, -q, -d, recoverboard-fixture, -U, postgres]
+      interval: 1s
+      timeout: 5s
+      retries: 60
+
+  fixture-migrator:
+    image: cca-demo-migrations:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.migrations
+    depends_on:
+      fixture-database:
+        condition: service_healthy
+    environment:
+      ConnectionString: postgresql://postgres:fixture-password@fixture-database:5432/recoverboard-fixture?sslmode=disable
+
+  fixture-app:
+    image: cca-demo:latest
+    build:
+      context: .
+    depends_on:
+      fixture-migrator:
+        condition: service_completed_successfully
+    environment:
+      ConnectionString: postgresql://postgres:fixture-password@fixture-database:5432/recoverboard-fixture?sslmode=disable
+
+  playwright:
+    image: recoverboard-playwright:local
+    build:
+      context: ../
+      dockerfile: Dockerfile.playwright
+    depends_on:
+      app:
+        condition: service_started
+    environment:
+      PW_SUITE: integration
+    volumes:
+      - ../artifacts/playwright:/artifacts
+    profiles: [integration]
+
+volumes:
+  test-database-data:
+  fixture-database-data:

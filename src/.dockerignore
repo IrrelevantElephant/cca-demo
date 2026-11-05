@@ -1,0 +1,24 @@
+# VCS, local state, and credentials
+.git
+.env
+.env.*
+!.env.example
+*.tfstate*
+result
+result-*
+
+# Host-generated dependencies and build output
+**/node_modules
+**/.pnpm-store
+web/dist
+bin
+build
+src
+*.out
+*.test
+
+# Runtime/test artifacts
+artifacts
+coverage
+*.log
+.DS_Store

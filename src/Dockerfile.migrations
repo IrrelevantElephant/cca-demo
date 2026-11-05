@@ -1,0 +1,6 @@
+FROM postgres:17.4-alpine3.21
+WORKDIR /migration
+COPY database/schema.sql ./schema.sql
+COPY database/migrations/002_tasks.sql ./002_tasks.sql
+COPY database/migrations/003_task_creation_constraints.sql ./003_task_creation_constraints.sql
+ENTRYPOINT ["sh", "-ec", "test -n \"${ConnectionString:-}\" || { echo 'ConnectionString is required' >&2; exit 1; }; export PGCONNECT_TIMEOUT=30; exec psql --dbname \"$ConnectionString\" --no-psqlrc --set ON_ERROR_STOP=1 --single-transaction --command=\"SET LOCAL lock_timeout = '60s'; SET LOCAL statement_timeout = '120s'; SELECT pg_advisory_xact_lock(724195013);\" --file ./schema.sql --file ./002_tasks.sql --file ./003_task_creation_constraints.sql"]

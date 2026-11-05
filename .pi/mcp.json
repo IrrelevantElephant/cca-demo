@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "grafana": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--env-file",
+        "/home/harry/.config/grafana-mcp/scaleway.env",
+        "grafana/mcp-grafana:2.2.0",
+        "-t",
+        "stdio",
+        "--disable-write",
+        "--enabled-tools=datasource,prometheus,loki"
+      ],
+      "description": "Read logs and metrics from Scaleway Observability Cockpit"
+    }
+  }
+}

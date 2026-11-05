@@ -1,0 +1,14 @@
+FROM mcr.microsoft.com/playwright:v1.51.1-noble
+
+RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client && rm -rf /var/lib/apt/lists/*
+COPY src/database/ /fixtures/database/
+
+WORKDIR /tests
+COPY tests/playwright/package.json tests/playwright/package-lock.json ./
+RUN npm ci
+COPY tests/playwright/ ./
+COPY docker/playwright-entrypoint.sh /usr/local/bin/playwright-entrypoint
+RUN chmod +x /usr/local/bin/playwright-entrypoint && mkdir -p /artifacts
+ENV CI=1
+ENTRYPOINT ["/usr/local/bin/playwright-entrypoint"]
+CMD ["npm", "run", "test:integration"]
