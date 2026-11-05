@@ -80,6 +80,7 @@
           export TF_VAR_project_id=906f9aec-92b5-4615-9a54-84d399de5231
           export AWS_ACCESS_KEY_ID=$(scw config get access-key)
           export AWS_SECRET_ACCESS_KEY=$(scw config get secret-key)
+          export SCW_DEFAULT_PROJECT_ID=906f9aec-92b5-4615-9a54-84d399de5231
 
          export GRAFANA_URL="https://$TF_VAR_project_id.dashboard.cockpit.scaleway.com"
          export GRAFANA_EXTRA_HEADERS={"X-Auth-Token":"$AWS_SECRET_ACCESS_KEY"}
